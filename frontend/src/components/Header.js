@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
 const HeaderContainer = styled.header`
@@ -29,11 +28,12 @@ const Nav = styled.nav`
   gap: 1.5rem;
 `;
 
-const NavLink = styled(Link)`
+const NavItem = styled.a`
   color: white;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s;
+  cursor: pointer;
   
   &:hover {
     color: #2196f3;
@@ -47,10 +47,10 @@ const Header = () => {
         <span>VIBE</span> Bloomberg Terminal
       </Logo>
       <Nav>
-        <NavLink to="/">Dashboard</NavLink>
-        <NavLink to="/market">Market</NavLink>
-        <NavLink to="/news">News</NavLink>
-        <NavLink to="/analysis">Analysis</NavLink>
+        <NavItem>Dashboard</NavItem>
+        <NavItem>Market</NavItem>
+        <NavItem>News</NavItem>
+        <NavItem>Analysis</NavItem>
       </Nav>
     </HeaderContainer>
   );
