@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -94,20 +95,51 @@ const MarketChart = ({ symbol = 'AAPL' }) => {
   const [currentPrice, setCurrentPrice] = useState(0);
   const [priceChange, setPriceChange] = useState(0);
   const [percentChange, setPercentChange] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   
   useEffect(() => {
-    // In a real app, this would be an API call
-    const candlestickData = generateCandlestickData(30);
-    setData(candlestickData);
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Try to fetch from API first
+        const response = await axios.get(`http://localhost:8001/api/market/${symbol}`);
+        setData(response.data);
+        
+        // Set current price and change
+        if (response.data.length >= 2) {
+          const lastDay = response.data[response.data.length - 1];
+          const prevDay = response.data[response.data.length - 2];
+          
+          setCurrentPrice(lastDay.close);
+          const change = lastDay.close - prevDay.close;
+          setPriceChange(change);
+          setPercentChange((change / prevDay.close) * 100);
+        }
+      } catch (err) {
+        console.error('Error fetching market data:', err);
+        setError('Failed to fetch data from API. Using mock data instead.');
+        
+        // Fallback to mock data if API fails
+        const candlestickData = generateCandlestickData(30);
+        setData(candlestickData);
+        
+        // Set current price and change
+        const lastDay = candlestickData[candlestickData.length - 1];
+        const prevDay = candlestickData[candlestickData.length - 2];
+        
+        setCurrentPrice(lastDay.close);
+        const change = lastDay.close - prevDay.close;
+        setPriceChange(change);
+        setPercentChange((change / prevDay.close) * 100);
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    // Set current price and change
-    const lastDay = candlestickData[candlestickData.length - 1];
-    const prevDay = candlestickData[candlestickData.length - 2];
-    
-    setCurrentPrice(lastDay.close);
-    const change = lastDay.close - prevDay.close;
-    setPriceChange(change);
-    setPercentChange((change / prevDay.close) * 100);
+    fetchData();
   }, [symbol]);
   
   // Custom tooltip for candlestick data
@@ -143,7 +175,7 @@ const MarketChart = ({ symbol = 'AAPL' }) => {
   return (
     <ChartContainer>
       <ChartHeader>
-        <Title>{symbol} Stock Chart</Title>
+        <Title>{symbol} Stock Chart {loading && '(Loading...)'}</Title>
         <StockInfo>
           <Price>${currentPrice.toFixed(2)}</Price>
           <Change positive={isPositive}>
@@ -151,6 +183,10 @@ const MarketChart = ({ symbol = 'AAPL' }) => {
           </Change>
         </StockInfo>
       </ChartHeader>
+      
+      {error && (
+        <div style={{ color: 'orange', marginBottom: '10px' }}>{error}</div>
+      )}
       
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart
