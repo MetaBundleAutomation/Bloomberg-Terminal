@@ -304,30 +304,6 @@ const SentimentLabel = styled.div`
   color: #aaa;
 `;
 
-// Mock data for stocks
-const stockOptions = [
-  { id: 'aapl', name: 'Apple Inc.', symbol: 'AAPL', exchange: 'NASDAQ', color: '#1E88E5' },
-  { id: 'msft', name: 'Microsoft Corporation', symbol: 'MSFT', exchange: 'NASDAQ', color: '#43A047' },
-  { id: 'googl', name: 'Alphabet Inc.', symbol: 'GOOGL', exchange: 'NASDAQ', color: '#E53935' },
-  { id: 'amzn', name: 'Amazon.com, Inc.', symbol: 'AMZN', exchange: 'NASDAQ', color: '#FB8C00' },
-  { id: 'tsla', name: 'Tesla, Inc.', symbol: 'TSLA', exchange: 'NASDAQ', color: '#8E24AA' },
-  { id: 'meta', name: 'Meta Platforms, Inc.', symbol: 'META', exchange: 'NASDAQ', color: '#3949AB' },
-  { id: 'nvda', name: 'NVIDIA Corporation', symbol: 'NVDA', exchange: 'NASDAQ', color: '#00ACC1' },
-  { id: 'jpm', name: 'JPMorgan Chase & Co.', symbol: 'JPM', exchange: 'NYSE', color: '#5E35B1' }
-];
-
-// Mock data for ETFs
-const etfOptions = [
-  { id: 'spy', name: 'SPDR S&P 500 ETF Trust', symbol: 'SPY', type: 'Large Cap Equity', color: '#1E88E5' },
-  { id: 'qqq', name: 'Invesco QQQ Trust', symbol: 'QQQ', type: 'Technology', color: '#43A047' },
-  { id: 'voo', name: 'Vanguard S&P 500 ETF', symbol: 'VOO', type: 'Large Cap Equity', color: '#E53935' },
-  { id: 'vti', name: 'Vanguard Total Stock Market ETF', symbol: 'VTI', type: 'Total Market', color: '#FB8C00' },
-  { id: 'agg', name: 'iShares Core U.S. Aggregate Bond ETF', symbol: 'AGG', type: 'Bond', color: '#8E24AA' },
-  { id: 'vea', name: 'Vanguard FTSE Developed Markets ETF', symbol: 'VEA', type: 'International', color: '#3949AB' },
-  { id: 'vwo', name: 'Vanguard FTSE Emerging Markets ETF', symbol: 'VWO', type: 'Emerging Markets', color: '#00ACC1' },
-  { id: 'bnd', name: 'Vanguard Total Bond Market ETF', symbol: 'BND', type: 'Bond', color: '#5E35B1' }
-];
-
 const Dashboard = () => {
   const [selectedNews, setSelectedNews] = useState(null);
   const [dataSource, setDataSource] = useState('stock');
@@ -572,7 +548,7 @@ const Dashboard = () => {
       
       <NewsSection>
         <NewsFeed 
-          key={`news-${selectedDate || 'none'}-${selectedDateRange ? 'range' : 'none'}`}
+          key={`news-${selectedDate || 'none'}-${selectedDateRange ? JSON.stringify(selectedDateRange) : 'none'}`}
           onNewsClick={handleNewsClick} 
           symbol={getCurrentSymbol()}
           dataSource={dataSource}
@@ -603,7 +579,7 @@ const Dashboard = () => {
             
             <NewsSource>
               <span>{selectedNews.source}</span>
-              <span>{selectedNews.date}</span>
+              <span>{selectedNews.display_date || selectedNews.date}</span>
             </NewsSource>
             
             <NewsSummary>
@@ -619,11 +595,99 @@ const Dashboard = () => {
                 <span>Positive</span>
               </SentimentLabel>
             </SentimentAnalysis>
+            
+            {selectedNews.articleData && selectedNews.articleData.length > 0 && (
+              <div style={{ marginTop: '20px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '15px' }}>
+                <h3 style={{ marginBottom: '10px' }}>Article Data</h3>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <tbody>
+                    {selectedNews.articleData.map(({ key, value }) => (
+                      <tr key={key} style={{ 
+                        backgroundColor: key % 2 === 0 ? 'rgba(255, 255, 255, 0.05)' : 'transparent' 
+                      }}>
+                        <td style={{ 
+                          padding: '8px 12px', 
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                          fontWeight: 'bold',
+                          width: '150px',
+                          color: 'var(--accent-color)'
+                        }}>{key}</td>
+                        <td style={{ 
+                          padding: '8px 12px', 
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                        }}>{value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            
+            {selectedNews.rawDataJson && (
+              <div style={{ marginTop: '20px' }}>
+                <pre style={{ 
+                  backgroundColor: '#1e1e1e',
+                  padding: '15px',
+                  borderRadius: '4px',
+                  overflow: 'auto',
+                  color: '#e6e6e6',
+                  fontFamily: 'monospace',
+                  fontSize: '0.9rem',
+                  maxHeight: '200px'
+                }}>
+                  {selectedNews.rawDataJson}
+                </pre>
+              </div>
+            )}
+            
+            {selectedNews.link && (
+              <a 
+                href={selectedNews.link} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-block',
+                  marginTop: '15px',
+                  color: 'var(--accent-color)',
+                  textDecoration: 'none',
+                  padding: '8px 16px',
+                  border: '1px solid var(--accent-color)',
+                  borderRadius: '4px',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Read Full Article
+              </a>
+            )}
           </ModalContent>
         </NewsModal>
       )}
     </DashboardContainer>
   );
 };
+
+// Mock data for stocks
+const stockOptions = [
+  { id: 'aapl', name: 'Apple Inc.', symbol: 'AAPL', exchange: 'NASDAQ', color: '#1E88E5' },
+  { id: 'msft', name: 'Microsoft Corporation', symbol: 'MSFT', exchange: 'NASDAQ', color: '#43A047' },
+  { id: 'googl', name: 'Alphabet Inc.', symbol: 'GOOGL', exchange: 'NASDAQ', color: '#E53935' },
+  { id: 'amzn', name: 'Amazon.com, Inc.', symbol: 'AMZN', exchange: 'NASDAQ', color: '#FB8C00' },
+  { id: 'tsla', name: 'Tesla, Inc.', symbol: 'TSLA', exchange: 'NASDAQ', color: '#8E24AA' },
+  { id: 'meta', name: 'Meta Platforms, Inc.', symbol: 'META', exchange: 'NASDAQ', color: '#3949AB' },
+  { id: 'nvda', name: 'NVIDIA Corporation', symbol: 'NVDA', exchange: 'NASDAQ', color: '#00ACC1' },
+  { id: 'jpm', name: 'JPMorgan Chase & Co.', symbol: 'JPM', exchange: 'NYSE', color: '#5E35B1' }
+];
+
+// Mock data for ETFs
+const etfOptions = [
+  { id: 'spy', name: 'SPDR S&P 500 ETF Trust', symbol: 'SPY', type: 'Large Cap Equity', color: '#1E88E5' },
+  { id: 'qqq', name: 'Invesco QQQ Trust', symbol: 'QQQ', type: 'Technology', color: '#43A047' },
+  { id: 'voo', name: 'Vanguard S&P 500 ETF', symbol: 'VOO', type: 'Large Cap Equity', color: '#E53935' },
+  { id: 'vti', name: 'Vanguard Total Stock Market ETF', symbol: 'VTI', type: 'Total Market', color: '#FB8C00' },
+  { id: 'agg', name: 'iShares Core U.S. Aggregate Bond ETF', symbol: 'AGG', type: 'Bond', color: '#8E24AA' },
+  { id: 'vea', name: 'Vanguard FTSE Developed Markets ETF', symbol: 'VEA', type: 'International', color: '#3949AB' },
+  { id: 'vwo', name: 'Vanguard FTSE Emerging Markets ETF', symbol: 'VWO', type: 'Emerging Markets', color: '#00ACC1' },
+  { id: 'bnd', name: 'Vanguard Total Bond Market ETF', symbol: 'BND', type: 'Bond', color: '#5E35B1' }
+];
 
 export default Dashboard;
