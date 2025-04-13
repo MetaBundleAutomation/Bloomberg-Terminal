@@ -208,7 +208,17 @@ const Timeline = ({ dataSource, symbol, onDateSelect, onDateRangeSelect }) => {
   // Handle point selection
   const handlePointSelection = useCallback((date) => {
     console.log('Point selection:', date);
-    setSelectedDate(date);
+    
+    // Format the date as YYYY-MM-DD
+    const formattedDate = typeof date === 'string' ? date : 
+      (date instanceof Date ? date.toISOString().split('T')[0] : null);
+    
+    if (!formattedDate) {
+      console.error('Invalid date format for point selection:', date);
+      return;
+    }
+    
+    setSelectedDate(formattedDate);
     setRangeStart(null);
     setRangeEnd(null);
     setRangeSelectionInProgress(false);
@@ -216,8 +226,8 @@ const Timeline = ({ dataSource, symbol, onDateSelect, onDateRangeSelect }) => {
     // For point selection, we'll use the same date for both filtering and display
     if (onDateRangeSelect) {
       // Create a range that covers just the selected date
-      const startDate = date;
-      const endDate = date;
+      const startDate = formattedDate;
+      const endDate = formattedDate;
       
       console.log(`Point selection as range: ${startDate} to ${endDate}`);
       onDateRangeSelect({ 
@@ -229,15 +239,25 @@ const Timeline = ({ dataSource, symbol, onDateSelect, onDateRangeSelect }) => {
     
     // Still call onDateSelect for other UI updates
     if (onDateSelect) {
-      onDateSelect(date);
+      onDateSelect(formattedDate);
     }
   }, [onDateSelect, onDateRangeSelect]);
   
   // Handle first click of range selection
   const handleRangeStart = useCallback((date) => {
     console.log('Range selection start:', date);
+    
+    // Format the date as YYYY-MM-DD
+    const formattedDate = typeof date === 'string' ? date : 
+      (date instanceof Date ? date.toISOString().split('T')[0] : null);
+    
+    if (!formattedDate) {
+      console.error('Invalid date format for range start selection:', date);
+      return;
+    }
+    
     setSelectedDate(null);
-    setRangeStart(date);
+    setRangeStart(formattedDate);
     setRangeEnd(null);
     setRangeSelectionInProgress(true);
     
@@ -254,21 +274,39 @@ const Timeline = ({ dataSource, symbol, onDateSelect, onDateRangeSelect }) => {
   const handleRangeEnd = useCallback((date) => {
     console.log('Range selection end:', date);
     
+    // Format the date as YYYY-MM-DD
+    const formattedDate = typeof date === 'string' ? date : 
+      (date instanceof Date ? date.toISOString().split('T')[0] : null);
+    
+    if (!formattedDate) {
+      console.error('Invalid date format for range end selection:', date);
+      return;
+    }
+    
+    // Format the range start as YYYY-MM-DD (if it's not already)
+    const formattedRangeStart = typeof rangeStart === 'string' ? rangeStart : 
+      (rangeStart instanceof Date ? rangeStart.toISOString().split('T')[0] : null);
+    
+    if (!formattedRangeStart) {
+      console.error('Invalid date format for range start:', rangeStart);
+      return;
+    }
+    
     // Determine the correct start and end dates
-    const start = new Date(rangeStart);
-    const end = new Date(date);
+    const start = new Date(formattedRangeStart);
+    const end = new Date(formattedDate);
     
     let startDate, endDate;
     
     if (start <= end) {
-      startDate = rangeStart;
-      endDate = date;
+      startDate = formattedRangeStart;
+      endDate = formattedDate;
     } else {
-      startDate = date;
-      endDate = rangeStart;
+      startDate = formattedDate;
+      endDate = formattedRangeStart;
     }
     
-    setRangeEnd(date);
+    setRangeEnd(formattedDate);
     setRangeSelectionInProgress(false);
     
     if (onDateRangeSelect) {
